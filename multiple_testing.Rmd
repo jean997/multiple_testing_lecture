@@ -80,7 +80,7 @@ xaringanExtra::use_panelset()
 
   + E.g. mean is equal to 0 or mean is less than or equal to zero. 
   
-- In hypothesis testing, we develop a test statistic $T$ such that $$E_{\mathbb{P}}[T] > sup_{\mathbb{P}_0 \in H_0}E_{\mathbb{P}_0}[T]$$ if $\mathbb{P} \not\in H_{0}$. 
+- In hypothesis testing, we develop a test statistic $T(\mathbf{X})$ such that $$E_{\mathbb{P}}[T(\mathbf{X})] > \underset{\mathbb{P}_0 \in H_0}{\text{sup}}E_{\mathbb{P}_0}[T(\mathbf{X})]$$ if $\mathbb{P} \not\in H_{0}$. 
 
 ---
 # p-Values
@@ -109,11 +109,11 @@ Oh wait.  That's not right.
 
 **p-value**: The probability of observing a test statistic as or more extreme than actually observed, if $H_0$ is true. 
 
-$$p(T_{obs}) = \sup_{\mathbb{P}_0 \in H_0} P_{\mathbb{P}_0}[T > T_{obs}]$$
+$$p(T(\mathbf{X}_{obs})) = \underset{\mathbb{P}_0 \in H_0}{\text{sup}} P_{\mathbb{P}_0}[T(\mathbf{X}) > T(\mathbf{X}_{obs})]$$
 
 --
 
-- Both the test statistic $T_{obs}$ and the p-value $p(T_{obs})$ are random variables. 
+- Both the test statistic $T(\mathbf{X}_{obs})$ and the p-value $p(T(\mathbf{X}_{obs}))$ are random variables. 
 
 
 ---
@@ -605,7 +605,8 @@ knitr::include_graphics("img/lfdr_Fdr.png")
 
 - The local false discovery rate is more conservative than the Bayesian FDR. 
 
-- In the prostate data, the Benjamini-Hochberg method rejects 60 hypotheses at a threshold of $q <0.1$. Using the `locfdr` procedure, we reject only `r sum(zz$fdr < 0.1)` hypotheses at `lfdr_j < 0.1$.
+- In the prostate data, the Benjamini-Hochberg method rejects 60 hypotheses at a threshold of $q <0.1$. Using the `locfdr` procedure, we reject only `r sum(zz$fdr < 0.1)` hypotheses at $lfdr_j < 0.1.$
+
 
 ---
 # Empirical Bayes Alternatives
@@ -619,7 +620,6 @@ knitr::include_graphics("img/locfdr.png")
 </center>
 
 - Different assumptions about $f_1$ lead to different partitions. 
-
 
 ---
 # Empirical Bayes Alternatives
@@ -636,7 +636,8 @@ knitr::include_graphics("img/ash.png")
   + Uses a flexible empirical estimate of non-null distribution. 
   
   + Implemented in the `ashr` R package.
-
+  
+  + Matthew Stephens (2017). False Discovery Rates: A New Deal. *Biostatistics*. doi:10.1093/biostatistics/kxw041
 
 ---
 # Adaptive Shrinkage in R
@@ -675,4 +676,5 @@ abline(0, 1)
   
     + In some contexts, more interpretable and useful than average FDR control. 
     
+
 

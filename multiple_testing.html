@@ -92,7 +92,7 @@ class: center, middle, inverse, title-slide
 
   + E.g. mean is equal to 0 or mean is less than or equal to zero. 
   
-- In hypothesis testing, we develop a test statistic `\(T\)` such that `$$E_{\mathbb{P}}[T] &gt; sup_{\mathbb{P}_0 \in H_0}E_{\mathbb{P}_0}[T]$$` if `\(\mathbb{P} \not\in H_{0}\)`. 
+- In hypothesis testing, we develop a test statistic `\(T(\mathbf{X})\)` such that `$$E_{\mathbb{P}}[T(\mathbf{X})] &gt; \underset{\mathbb{P}_0 \in H_0}{\text{sup}}E_{\mathbb{P}_0}[T(\mathbf{X})]$$` if `\(\mathbb{P} \not\in H_{0}\)`. 
 
 ---
 # p-Values
@@ -121,11 +121,11 @@ Oh wait.  That's not right.
 
 **p-value**: The probability of observing a test statistic as or more extreme than actually observed, if `\(H_0\)` is true. 
 
-`$$p(T_{obs}) = \sup_{\mathbb{P}_0 \in H_0} P_{\mathbb{P}_0}[T &gt; T_{obs}]$$`
+`$$p(T(\mathbf{X}_{obs})) = \underset{\mathbb{P}_0 \in H_0}{\text{sup}} P_{\mathbb{P}_0}[T(\mathbf{X}) &gt; T(\mathbf{X}_{obs})]$$`
 
 --
 
-- Both the test statistic `\(T_{obs}\)` and the p-value `\(p(T_{obs})\)` are random variables. 
+- Both the test statistic `\(T(\mathbf{X}_{obs})\)` and the p-value `\(p(T(\mathbf{X}_{obs}))\)` are random variables. 
 
 
 ---
@@ -495,13 +495,13 @@ hist(fdp[1,], breaks = seq(0, 1, length.out = 50),
 
 - In our simulation, the average Fdp was 0.09. 
 
-- We made between 0 and 14 rejections with an average of 1.824 rejections per experiment.  
+- We made between 0 and 14 rejections with an average of 1.848 rejections per experiment.  
 
 - We made 0 rejections in 34% of the experiments. 
 
-- The Fdp was greater than 0.2 in 16% of experiments and greater than 0.5 in 4% of experiments.
+- The Fdp was greater than 0.2 in 18% of experiments and greater than 0.5 in 4% of experiments.
 
-- The Fdp was 0 in 80% of experiments.
+- The Fdp was 0 in 78% of experiments.
 
 ---
 # A Bayesian View
@@ -617,7 +617,8 @@ zz &lt;- locfdr(prostz, nulltype = 0, plot = 1)
 
 - The local false discovery rate is more conservative than the Bayesian FDR. 
 
-- In the prostate data, the Benjamini-Hochberg method rejects 60 hypotheses at a threshold of `\(q &lt;0.1\)`. Using the `locfdr` procedure, we reject only 25 hypotheses at `lfdr_j &lt; 0.1$.
+- In the prostate data, the Benjamini-Hochberg method rejects 60 hypotheses at a threshold of `\(q &lt;0.1\)`. Using the `locfdr` procedure, we reject only 25 hypotheses at `\(lfdr_j &lt; 0.1.\)`
+
 
 ---
 # Empirical Bayes Alternatives
@@ -629,7 +630,6 @@ zz &lt;- locfdr(prostz, nulltype = 0, plot = 1)
 &lt;/center&gt;
 
 - Different assumptions about `\(f_1\)` lead to different partitions. 
-
 
 ---
 # Empirical Bayes Alternatives
@@ -643,7 +643,8 @@ zz &lt;- locfdr(prostz, nulltype = 0, plot = 1)
   + Uses a flexible empirical estimate of non-null distribution. 
   
   + Implemented in the `ashr` R package.
-
+  
+  + Matthew Stephens (2017). False Discovery Rates: A New Deal. *Biostatistics*. doi:10.1093/biostatistics/kxw041
 
 ---
 # Adaptive Shrinkage in R
@@ -685,6 +686,7 @@ abline(0, 1)
   
     + In some contexts, more interpretable and useful than average FDR control. 
     
+
 
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
