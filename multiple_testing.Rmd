@@ -1,0 +1,678 @@
+---
+title: "Multiple Testing"
+author: "Jean Morrison"
+institute: "Adapted from Tom Braun"
+date: "March 29, 2022 (updated: `r Sys.Date()`)"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: [robot-fonts, robot, "scroll.css"]
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      scroll: false
+---
+
+<style>
+
+.remark-slide-content {
+    font-size: 26px;
+    padding: 1em 4em 1em 4em;
+}
+
+.remark-slide-content h1 {
+  font-size: 3.2rem
+}
+</style>
+
+
+# Introduction
+
+- Advancements in computing and experimental technology in the last ~60 years have allowed new types of experiments. 
+
+- Technologies like microarrays and then later high throughput sequencing allow us to measure thousands of variables at once  (e.g. genes, genetic variants, etc). 
+
+- We now want to perform thousands/millions/billions(?) of simultaneous hypothesis tests.
+
+- This requires different concepts and techniques than individual hypothesis testings. 
+
+- Resource for this lecture:
+
+[Computer Age Statistical Inference by Bradley Effron and Trevor Hastie](https://hastie.su.domains/CASI/)
+
+```{r xaringan-tile-view, echo=FALSE}
+xaringanExtra::use_tile_view()
+xaringanExtra::use_search(show_icon = TRUE)
+xaringanExtra::use_panelset()
+```
+
+
+---
+# Hypothesis Testing
+
+- Let $X_1, \dots, X_N$ be a sample of $N$ observations from a probability distribution $\mathbb{P}$. 
+
+- Let $\mathcal{M}$ be a *model*.
+
+  + A model is a set of probability distributions.
+  
+  + For example, we might have $\mathcal{M} = \lbrace N(\mu, \sigma^2); \mu \in \mathbb{R}, \sigma \in \mathbb{R}_{+} \rbrace$.
+  
+- A null hypothesis $H_0$ is a subset of the model. 
+
+  + Example: $H_0 = \lbrace N(0, \sigma^2); \sigma \in \mathbb{R}_{+}\rbrace$
+  
+- Almost always, the null hypothesis is defined by restricting a parameter, like the mean, to a subset.  
+
+  + In fact almost always, our null is something like $H_0: \mu = 0$ or $H_0: \mu \leq 0$. 
+  
+---
+# Hypothesis Testing  
+
+- Typically we try to answer statistical questions by identifying and estimating relevant parameters of the underlying probability distribution. 
+
+  + E.g. the mean.
+  + Or the conditional mean of one variable given another.  
+  
+- We might also interested in ruling out some (boring) values of the parameter space. 
+
+  + E.g. mean is equal to 0 or mean is less than or equal to zero. 
+  
+- In hypothesis testing, we develop a test statistic $T$ such that $$E_{\mathbb{P}}[T] > sup_{\mathbb{P}_0 \in H_0}E_{\mathbb{P}_0}[T]$$ if $\mathbb{P} \not\in H_{0}$. 
+
+---
+# p-Values
+
+- We want to know if the true data distribution $\mathbb{P}$ is in $H_0$ or not. 
+
+--
+
+**p-value**: The probability that the null hypothesis is true.
+
+---
+# p-Values
+
+- We want to know if the true data distribution $\mathbb{P}$ is in $H_0$ or not. 
+
+~~**p-value**: The probability that the null hypothesis is true.~~
+
+Oh wait.  That's not right.
+
+---
+# p-Values
+
+- We want to know if the true data distribution $\mathbb{P}$ is in $H_0$ or not. 
+
+~~**p-value**: The probability that the null hypothesis is true.~~
+
+**p-value**: The probability of observing a test statistic as or more extreme than actually observed, if $H_0$ is true. 
+
+$$p(T_{obs}) = \sup_{\mathbb{P}_0 \in H_0} P_{\mathbb{P}_0}[T > T_{obs}]$$
+
+--
+
+- Both the test statistic $T_{obs}$ and the p-value $p(T_{obs})$ are random variables. 
+
+
+---
+# Distribution of p-values
+ 
+- Suppose we have a sample of $N(\mu, \sigma^2)$ data and we want to test the null hypothesis that $\mu \leq 0$. 
+
+- We run a simple simulation: In each experiment, we
+
+  +  Draw a sample of size 4 from a $N(\mu, 1)$ distribution. 
+  
+  + Compute the t-statistic $T = \bar{X}/(\hat{\sigma}/\sqrt{4})$. 
+  
+  + Compute the p-value by computing the probability that a $t_3$ distributed variable is larger than $T$. 
+  
+- Repeat 10,000 times
+
+Murdoch, Tsai, and Adcock (2008). P-Values are Random Variables. *The American Statistician*, 62, 242-245.
+---
+# Distribution of p-values
+
+- If $\mu = 0$ (the boundary of $H_0$) the p-values are exactly uniformly distributed. 
+
+<center> 
+```{r, echo=FALSE, out.width="40%"}
+knitr::include_graphics("img/uniform_p.png")
+```
+</center>
+
+---
+# Distribution of p-values
+
+- Under the alternative, the p-value is not uniform. The distribution will be shifted towards 0. 
+
+<center> 
+```{r, echo=FALSE, out.width="85%"}
+knitr::include_graphics("img/alt_pval.png")
+```
+</center>
+
+---
+# Distribution of p-values
+
+- If the true value $\mu$ is -0.5 (inside the null region), the distribution of p-values will be shifted towards 1.  
+
+<center> 
+```{r, echo=FALSE, out.width="40%"}
+knitr::include_graphics("img/deep_pval.png")
+```
+</center>
+
+---
+# Distribution of p-values
+
+- The distribution of the p-value depends on the true value of the parameter. 
+
+--
+
+- The p-value is not guaranteed to be small under the alternative hypothesis. 
+
+  + When $\mu = 0.5$, the p-value is less than 0.05 in about 20% of simulations. 
+  
+  + Recall power from last week's lecture. 
+  
+--
+
+- This is why we can't accept the null hypothesis: 
+
+  + "We conclude that there is no effect of TRIP13 on tumor growth" vs
+  
+  + "We are not able to reject the null hypothesis that TRIP13 has no effect on tumor growth."
+  
+  
+---
+# Decision Rules
+
+- The act of rejecting or not rejecting a null hypothesis is a decision.
+
+- Our decision will either be correct or incorrect depending on the underlying (unknowable) truth.
+
+- Because we are making a binary decision and the underlying truth is binary, our decision will fall into one of four categories.
+
+- If we use the decision rule $p < 0.05$, then 0.05 is a *critical value*. 
+
+</br>
+
+```{r, echo = FALSE}
+library(knitr)
+library(kableExtra)
+dat <- data.frame(Accept = c("True Negative", "False Negative"),
+                      Reject = c("False Positive", "False Positive"))
+row.names(dat) <- c("\\(H_{0}\\) True", "\\(H_{0}\\) False")
+knitr::kable(dat, col.names = c("Don't Reject \\(H_{0}\\)","Reject \\(H_{0}\\)"),
+             row.names = TRUE, format = 'html')  %>%
+    column_spec(1, bold = TRUE) %>%
+    kable_styling(bootstrap_options = c("bordered"))
+```
+
+---
+# Multiple Testing
+
+- Suppose that instead of testing one null hypothesis, we are now testing a large number of null hypotheses in a single experiment. 
+
+  + For example, we might be interested in the difference in average gene expression between two groups across many genes...
+  
+  + Let $m$ be the total number of hypotheses tested.
+  
+--
+
+- Suppose that the global hull is true: $H_0$ is true for every hypothesis tested. 
+
+- If we reject $H_0$ for all parameters with $p < 0.05$, we can expect to make $0.05\cdot m$ mistakes. 
+  + If $m = 20,000$, this is 1,000 mistakes. 
+  
+  + This could lead to a lot of wasted money if we follow up our discoveries with expensive experiments. 
+
+---
+# Family-Wise Error Rate
+
+- The family-wise error rate is the probability of making *any* mistakes among a set of tests under the global null. 
+
+- The *Bonferoni correction* is an adjustment to the critical value for our decision rule. 
+
+- Suppose we want to control the family-wise error rate at a level $\alpha$. 
+
+- The Bonferroni correction tells us to reject when $p < \alpha/m$. 
+
+---
+# Bonferroni Correction
+
+Under the global null,
+
+$$P(\text{any } p_j < \alpha/m) = P(\bigcup_{j=1}^m\lbrace p_j \leq \alpha/m \rbrace)\\\
+\leq \sum_{j=1}^m P(p_j \leq \alpha/m)\\\
+= \sum_{j = 1}^m \alpha/m = \alpha$$
+
+- This bound holds for any dependence structure between the $p_j$.
+
+
+---
+# Bonferroni and Dependence
+
+- Suppose that our $p$-values are highly correlated. 
+
+- In the worst case, our tests are nearly identical. 
+
+- In this case, Bonferroni will be very conservative. 
+
+- Our actual FWER will be
+$$P(\text{any } p_j < \alpha/m) \approx P(p_1 < \alpha/m) \approx \alpha/m$$
+
+- We would have been better off rejecting when $p_j < \alpha$.
+
+---
+# Bonferroni and Dependence
+
+
+- Bonferroni is more conservative when $m$ is larger and when correlation between $p$-values is greater. 
+
+<center> 
+```{r, echo=FALSE, out.width="60%"}
+knitr::include_graphics("img/bonferroni.png")
+```
+</center>
+
+---
+# Sequential Holm-Bonferroni Method
+
+- We can do a little better than Bonferroni. 
+
+- Order $p$-values from smallest to largest.
+
+$$p_{(1)} \leq p_{(2)} \leq \dots \leq p_{(i)} \leq \dots p_{(N)}$$
+- Let $i_0$ be the smallest index $i$ such that
+$$p_{(i_0)} > \frac{\alpha}{N-i_0 + 1}$$
+
+- Reject all null hypothesis for $H_{0(i)}$ for $i < i_0$. 
+
+---
+# Holm-Bonferroni Example
+
+- Suppose we have 5 p-values: $p_1 = 0.015$, $p_2 = 0.032$, $p_3 = 0.002$, $p_4 = 0.046$, $p_5 = 0.005$.
+
+- Order them: 0.002, 0.005, 0.015, 0.032, 0.046.
+
+- $0.002 < \frac{0.05}{5-1+1} = 0.01$: Reject $H_3$. 
+
+- $0.005 < \frac{0.05}{5-2 + 1}= 0.0125$: Reject $H_5$.
+
+- $0.015 < \frac{0.05}{5-3+1} = 0.017$: Reject $H_1$.
+
+- $0.032 > \frac{0.05}{5-4+1} = 0.025$: Stop. Fail to reject $H_2$ and $H_4$. 
+
+- Bonferroni would only allow us to reject $H_3$ and $H_5$. 
+
+
+
+
+
+---
+# Why FWER?
+
+- Controlling the family-wise error rate is about behavior under the **global null**. 
+
+- Often when we are doing many tests, we know confidently that the global null does not hold. 
+
+- For example, in genetic studies we *know* there are some genetic effects on a trait because we know the trait runs in families. 
+
+- We *know* that gene expression differs for some genes between cell types because different cell types do different things. 
+
+- Our interest is in determining which hypotheses are non-null, not whether any hypotheses are non-null.  
+
+---
+# Microarray Example
+
+- Gene expression for 6,033 genes was measured by microarray for 52 prostate cancer patients and 50 controls. 
+
+- For each gene, a two sample $t$ statistic was computed. 
+
+- $t$-statistics were converted to $z$-values by inverting the CDF of the the $t$-distribution. 
+
+<center> 
+```{r, echo=FALSE, out.width="55%"}
+knitr::include_graphics("img/prostate_hist.png")
+```
+</center>
+
+---
+# False Discovery Rate
+
+- We want a decision rule to reject or not reject $H_0$ for each gene.
+
+- Our collaborators are going to perform a lab experiment to further study each of the genes for which we rejected $H_0$. 
+
+- Experiments are expensive and time-consuming so we want to limit the number of false positives in our rejected set. 
+
+- We want to tell our collaborators what proportion of the experiments we think will be a waste of time. 
+
+- We need to know the *false discovery rate* or the expected proportion of rejections for which $H_0$ was actually true.
+
+---
+# False Discovery Rate
+
+- Suppose we apply a decision rule to a set of $N$ hypotheses, producing the table below: 
+<center> 
+```{r, echo=FALSE, out.width="40%"}
+knitr::include_graphics("img/twobytwo.png")
+```
+</center>
+
+- The *false discovery proportion (Fdp)* is $a/R$. Fdp is defined to be 0 if $R = 0$.
+
+- FDP is unobservable, but we may be able to control $E[Fdp]$. 
+
+---
+# False Discovery Rate
+
+- The false discovery rate of a decision rule $D$ is the expectation of its Fdp. 
+$$FDR(D) = E_P(Fdp(D))$$
+where $P$ is the distribution of $p$-values. 
+
+- We want to produce a rule such that $FDR(D) < q$ for some $q \in (0, 1)$. 
+
+---
+# Benjamini Hochberg FDR
+
+Define a decision rule $D_q$:
+
+- Order $p$-values smallest to largest:
+$$p_{(1)} \leq p_{(2)} \leq \dots \leq p_{(i)} \leq \dots p_{(N)}$$
+
+- Find $i^*$, the largest index $i$ such that 
+$$p_{(i^*)} \leq q \frac{i^*}{N}$$
+
+- Reject null hypotheses if $H_{0(i)} \leq i^*$. 
+
+- $D_q$ has FDR equal to $\pi_0 q \leq q$ where $\pi_0 = \frac{N_0}{N}$, the proportion of truly null hypotheses. 
+
+---
+# BH vs Holm-Bonferroni
+
+Black line: Rejection threshold for Holm-Bonferroni at $\alpha = 0.1$.
+
+Red line: Rejection threshold for Benjamini-Hochberg at $q = 0.1$. 
+
+<center> 
+```{r, echo=FALSE, out.width="75%"}
+knitr::include_graphics("img/fdr_fwer.png")
+```
+</center>
+
+---
+# Multiple Testing Adjustment in R
+
+- The function `p.adjust` in the `stats` package implements the Bonferroni, Holm-Bonferroni, Benjamini-Hochberg, and several other multiple testing adjustments. 
+
+- The input to `p.adjust` is a vector of $p$-values, $p_1, \dots, p_N$.
+
+- The output is a vector critical values $a_1, \dots, a_N$. 
+
+- For BH, $a_j$ is the largest FDR threshold at which we would reject $H_{0}$ for all hypotheses with $p$-value less than or equal to $p_j$ but would not reject hypotheses.
+
+  - For Bonferroni and Holm-Bonferroni swap FWER for FDR in the statement above.
+  - For FDR procedures, these are called $q$-values. 
+  
+- So a decision rule controlling the FDR at $q < 0.1$ would reject all tests with `p.adjust(pvals, method = "BH") < 0.1`. 
+
+---
+# Benjamini-Hochberg and Dependence
+
+- The BH procedure is guaranteed to control the FDR if tests are independent. 
+
+- This guarantee extends to some situations with dependence. 
+  
+  + In particular, if all correlations between test-statistics are positive, BH remains valid. 
+  
+  
+- For general dependence structures, an alternative method Benjamini-Yekutieli (BY) can be used. 
+
+- BY tends to be much more conservative than BH.
+
+---
+# FDR Considerations
+
+- Controlling the FDR only controls the *average* false discovery proportion. 
+
+- We don't get any guarantees about the probability that the Fdp is bigger than $q$. 
+
+- We also don't get guarantees that the Fdp is smaller than some threshold. 
+
+  + If the global null is true, the Fdp is 1 if we make any rejections. 
+  + The BH procedure therefore controls FDR by making no rejections more than 1-q% of the time. 
+  + But in the cases where it does make rejections, all discoveries are false. 
+
+- Whether or not a hypothesis is rejected will depend on the distribution of the rest of the test statistics. 
+  
+  + If we have lots of confident rejections, we can afford more iffy rejections. 
+
+
+---
+# Controlling FDR
+
+The code below runs a very simpl simulation. 
+
+- Generate 1100 z-scores. The first 100 are drawn from a $N(0,1.5^2)$ distribution (non-null), the remaining 1000 are drawn from a $N(0,1)$ distribution. 
+
+- Compute a $p$-value comparing the z-scores to the standard normal distribution. 
+
+- Compute critical values using the BH method. 
+
+- Compute the Fdp
+
+```{r, fig.align='center', fig.width=8}
+fdp <- replicate(n  = 1000, expr ={
+  z <- c(rnorm(n = 100, sd = 1.5), rnorm(n = 1000))
+  p <- 2*pnorm(-abs(z))
+  x <- which(p.adjust(p, method = "BH") < 0.1)
+  if(length(x)==0) r <- 0
+      else r <- sum(!x %in% 1:100)/length(x)
+  c(r, length(x))
+})
+hist(fdp[1,], breaks = seq(0, 1, length.out = 50), 
+     xlab = "Fdp", main = "")
+```
+
+---
+# Controlling FDR
+
+- In our simulation, the average Fdp was `r round(mean(fdp[1,]), digits = 2)`. 
+
+- We made between 0 and 14 rejections with an average of `r mean(fdp[2,])` rejections per experiment.  
+
+- We made 0 rejections in `r round(mean(fdp[2,]==0)*100)`% of the experiments. 
+
+- The Fdp was greater than 0.2 in `r round(mean(fdp[1,] > 0.2)*100)`% of experiments and greater than 0.5 in `r round(mean(fdp[1,] > 0.5)*100)`% of experiments.
+
+- The Fdp was 0 in `r round(mean(fdp[1,] ==0)*100)`% of experiments.
+
+---
+# A Bayesian View
+
+- Our problem is a classification problem: we want to sort hypotheses into categories " $H_0$ true" and " $H_0$ false". 
+
+- Using Bayesian methods, we can make statements about the probability that $H_0$ is false or not.
+
+- Suppose we have a set of test statistics $\hat{z}_1, \dots, \hat{z}_m$. 
+
+- The Bayesian false discovery rate of a values $z$ is 
+
+$$Fdr(z) = P(H_{0,j} \text{ true} \vert \hat{z}_j > z)$$
+---
+# Bayesian False Discovery Rate
+
+- We assume the data are from a mixture distribution. 
+
+  + Test statistics for null tests have density $f_0(z)$.
+  + Test statistics for non-null tests have density $f_1(z)$. 
+  
+- Typically, we assume we know $f_0(z)$ (e.g $N(0,1)$). 
+
+- If we knew $f_1(z)$, we could compute the Bayesian Fdr using Bayes rule. 
+
+$$Fdr(z) = P(H_{0,j} \text{ true} \vert \hat{z}_j > z) = \\\
+      \frac{P(H_{0,j} \text{ true})P(\hat{z}_j > z \vert H_{0,j} \text{ true})}{P(\hat{z}_j > z)} = \\\
+      \frac{\pi_0 \int_{z}^\infty f_0(z)dz}{\int_z^\infty f(z)dz}$$
+    where 
+    $$f(z) = \pi_0 f_0(z) + \pi_1 f_1(z)$$
+    and $\pi_0$ and $\pi_1$ are the prior probability of $H_0$ and $H_a$ respectively. 
+
+
+---
+# Estimating the Bayesian Fdr
+
+$$Fdr(z) = \frac{\pi_0 \int_{z}^\infty f_0(z)dz}{\int_z^\infty f(z)dz} = \frac{\pi_0 S_0(z)}{S(z)}$$
+- We know $f_0$ and (typically) can assume $\pi_0$ is close to 1. 
+
+- This leaves us to estimate the denominator which is just the total probability of observing a test statistic greater than $z$. 
+
+- We can use the empirical estimate
+
+$$\hat{S}(z) = \frac{1}{m}\sum_{j=1}^m 1_{\hat{z}_j > z}$$
+
+- This procedure is "empirical Bayes" because we are estimating $S(z)$ from the data. 
+
+
+---
+# Bayesian false discovery rate - BH Connection
+
+- First notice that the p-value $p_j = = \int_{z_j}^\infty f_0(z)dz = S_0(z_j)$. 
+
+- Now order the p-values as we did for the BH method. 
+
+- Notice that the empirical estimate of $\hat{S}(z_{(i)}) = \frac{i}{m}$
+
+- So 
+$$Fdr(z_{(i)}) = \frac{\pi_0 p_{(i)}}{i/m}$$
+- Thus, if we wanted to control the Bayesian Fdr at a threshold $q$, we would reject $H_0(i)$ if
+
+$$p_{(i)} < q \frac{i}{m \pi_0}$$
+
+- If we set $\pi_0$ to 1, we have the Benjamini-Hochberg procedure. 
+
+- So in a frequentist view, the BH procedure controls the average FDR. 
+
+- In a Bayesian view, the BH procedure controls the "posterior probability of nullness". 
+
+---
+# Bayesian FDR and Dependence
+
+- The estimate of $\hat{S}$ is unbiased regardless of the dependence structure of the data. 
+
+- However, more correlation increases the variability of $\hat{S}$ and the actual FDR. 
+
+---
+# Local False Discovery Rate
+
+- The Bayesian FDR gives the probability of $H_{0,j}$ given that $\hat{z}_j$ is greater than some threshold $z$. 
+
+- However, we may be more interested in the probability that $H_{0,j}$ given $\hat{z}_j$. This is the local false discovery rate. 
+
+$$lfdr(z) = P(H_{0,j} \text{ true} \vert \hat{z}_j = z)$$
+- Using Bayes theorem, we find
+$$lfdr(z) = \frac{\pi_0 f_0(z)}{f(z)}$$
+
+- We can estimate $f(z)$ by drawing a smooth estimate through the histogram of test-statistics. 
+
+- Implemented in the `locfdr` R package. 
+
+---
+# Local False Discovery Rate in R
+
+
+```{r, fig.align='center', fig.width=12, fig.height=5}
+library(locfdr)
+prostz <- read.csv("http://hastie.su.domains/CASI_files/DATA/prostz.txt")
+prostz <- prostz[,1]
+zz <- locfdr(prostz, nulltype = 0, plot = 1)
+```
+
+---
+# lfdr vs Bayesian Fdr
+
+<center> 
+```{r, echo=FALSE, out.width="65%"}
+knitr::include_graphics("img/lfdr_Fdr.png")
+```
+</center>
+
+
+- The local false discovery rate is more conservative than the Bayesian FDR. 
+
+- In the prostate data, the Benjamini-Hochberg method rejects 60 hypotheses at a threshold of $q <0.1$. Using the `locfdr` procedure, we reject only `r sum(zz$fdr < 0.1)` hypotheses at `lfdr_j < 0.1$.
+
+---
+# Empirical Bayes Alternatives
+
+- The `locfdr` method is partitioning the distribution of test statistics into null and non-null portions
+
+<center> 
+```{r, echo=FALSE, out.width="65%"}
+knitr::include_graphics("img/locfdr.png")
+```
+</center>
+
+- Different assumptions about $f_1$ lead to different partitions. 
+
+
+---
+# Empirical Bayes Alternatives
+
+<center> 
+```{r, echo=FALSE, out.width="65%"}
+knitr::include_graphics("img/qvalue.png")
+knitr::include_graphics("img/ash.png")
+```
+</center>
+
+- Adaptive Shrinkage (ash) assumes that non-null effects are unimodal. 
+
+  + Uses a flexible empirical estimate of non-null distribution. 
+  
+  + Implemented in the `ashr` R package.
+
+
+---
+# Adaptive Shrinkage in R
+
+- ASH can accept estimates that are expected to be mean 0 normally distributed under the null *and* standard errors ( $\hat{\beta}$ and $s$ ). 
+  + `locfdr` requires z-values. 
+  
+- ASH will also compute the local false sign rate, or the posterior probability of getting the sign wrong. It is the smaller of 
+
+$$P[\beta_j < 0 \vert \hat{\beta}, s, \hat{\pi}] \qquad \text{and} \qquad P[\beta_j > 0 \vert \hat{\beta}, s, \hat{\pi}]$$
+
+  + $\hat{\pi}$ are estimated parameters defining $f_1$. 
+
+```{r}
+library(ashr)
+zzash <- ash(betahat = prostz, sebetahat = 1)
+
+plot(zz$fdr, zzash$result$lfdr, xlab = "locfdr lfdr", ylab = "ASH lfdr")
+abline(0, 1)
+```
+
+
+- `locfdr` estimated that `r round(zz$fp0[1,3]*100)`% of hypotheses in the prostate cancer data were null while ash estimates that `r round(zzash$fitted_g$pi[1]*100)`% of hypotheses are null. 
+
+
+---
+# Summary
+
+- The method we use to declare hypotheses "significant" depends on the context. 
+
+- Bonferroni adjustment can be very conservative.
+
+- If the global null is not interesting, we can do better by controlling the FDR. 
+
+- Empirical Bayes methods give estimates of the Bayesian FDR and the local false discovery rate. 
+  
+    + In some contexts, more interpretable and useful than average FDR control. 
+    
+
